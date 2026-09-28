@@ -3591,6 +3591,7 @@
         "register",
         "ai-assistant",
       ];
+      window.views = views;
 
       const navHistory = ["landing"];
 
@@ -4421,9 +4422,9 @@
           // Progressive fallback constraints
           let streamObj = null;
           const constraintsList = [
-            { video: { facingMode: facing, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false },
-            { video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
-            { video: { facingMode: facing }, audio: false },
+            { video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false },
+            { video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+            { video: { facingMode: { ideal: facing } }, audio: false },
             { video: true, audio: false }
           ];
 
@@ -4444,10 +4445,13 @@
               v.setAttribute("playsinline", "true");
               v.setAttribute("autoplay", "true");
               v.muted = true;
-              try {
-                await v.play();
-              } catch(e) {
-                console.warn("Video play non-fatal:", e);
+              v.onloadedmetadata = () => {
+                if (typeof v.play === "function") {
+                  v.play().catch((e) => console.warn("Video play non-fatal:", e));
+                }
+              };
+              if (typeof v.play === "function") {
+                v.play().catch((e) => console.warn("Video play non-fatal:", e));
               }
             }
             if (errEl) errEl.style.display = "none";
@@ -4617,50 +4621,139 @@
             canvas.height = 960;
             const ctx = canvas.getContext("2d");
 
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.src = type === "healthy"
-              ? "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1280&q=80"
-              : "https://lh3.googleusercontent.com/aida-public/AB6AXuCNNUcthOHLOpYXfvPdyYrfbfLuozJB0hQfvnkWowvAPXWDmULcq3JXOojueiP0dVzog1Ma_GNjhGfP_rO-Lcvc4fL9BCQW_Yvl4L__hNfzeoXeYJZZMdjFIagGi2INT4iFaQ-noSMupzhuThLwMkoIcKYfpwOrWHrDSVa3h9PHZdlROAnW6AEsD_rMNl2fUPM64bOSGDnJJJzBnCFCgpOUWZ_fHBLr-kX3LlWck6cEfYC_TAThQyuO";
-
-            const finishDraw = () => {
-              if (img.complete && img.naturalWidth) {
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-              } else {
-                ctx.fillStyle = "#1e3a24";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                const grad = ctx.createRadialGradient(640, 480, 50, 640, 480, 600);
-                grad.addColorStop(0, type === "healthy" ? "#4ade80" : "#a3e635");
-                grad.addColorStop(0.5, "#15803d");
-                grad.addColorStop(1, "#052e16");
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-              }
-
-              // Telemetry Stamp HUD
-              ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
-              ctx.fillRect(20, 20, 460, 75);
+            const drawTelemetry = () => {
+              ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+              ctx.fillRect(20, 20, 500, 80);
               ctx.strokeStyle = "#6cf8bb";
-              ctx.lineWidth = 1.5;
-              ctx.strokeRect(20, 20, 460, 75);
+              ctx.lineWidth = 2;
+              ctx.strokeRect(20, 20, 500, 80);
 
               ctx.font = "bold 15px 'Courier New', monospace";
               ctx.fillStyle = "#6cf8bb";
-              ctx.fillText("AGRIVISION FIELD CAM • SENSOR_04B", 35, 45);
+              ctx.fillText("AGRIVISION FIELD CAM • SENSOR_04B", 35, 46);
               ctx.font = "13px 'Courier New', monospace";
               ctx.fillStyle = "#ffffff";
-              ctx.fillText("GPS: 13.9299°N, 75.5681°E • " + new Date().toLocaleTimeString(), 35, 68);
+              ctx.fillText("GPS: 13.9299°N, 75.5681°E • " + new Date().toLocaleTimeString(), 35, 70);
+              ctx.fillStyle = type === "healthy" ? "#6cf8bb" : "#ffb4ab";
+              ctx.fillText("SPECIMEN: " + (type === "healthy" ? "HEALTHY ARECANUT FROND" : "COLLETOTRICHUM LEAF SPOT"), 35, 90);
+            };
 
-              const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-              showPreview(dataUrl);
-              toast("📸 Crop leaf photo captured! Review or load into diagnostic console");
+            const drawProceduralFoliage = () => {
+              const bgGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+              bgGrad.addColorStop(0, "#081d11");
+              bgGrad.addColorStop(1, "#112e1c");
+              ctx.fillStyle = bgGrad;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+              ctx.save();
+              ctx.translate(640, 500);
+
+              ctx.beginPath();
+              ctx.moveTo(0, -380);
+              ctx.bezierCurveTo(240, -260, 280, 160, 0, 360);
+              ctx.bezierCurveTo(-280, 160, -240, -260, 0, -380);
+              const leafGrad = ctx.createLinearGradient(0, -380, 0, 360);
+              if (type === "healthy") {
+                leafGrad.addColorStop(0, "#22c55e");
+                leafGrad.addColorStop(0.5, "#15803d");
+                leafGrad.addColorStop(1, "#14532d");
+              } else {
+                leafGrad.addColorStop(0, "#84cc16");
+                leafGrad.addColorStop(0.4, "#4d7c0f");
+                leafGrad.addColorStop(0.7, "#78350f");
+                leafGrad.addColorStop(1, "#1e3a1f");
+              }
+              ctx.fillStyle = leafGrad;
+              ctx.fill();
+              ctx.strokeStyle = "rgba(255,255,255,0.25)";
+              ctx.lineWidth = 3;
+              ctx.stroke();
+
+              ctx.beginPath();
+              ctx.moveTo(0, -370);
+              ctx.lineTo(0, 350);
+              ctx.strokeStyle = type === "healthy" ? "#86efac" : "#ca8a04";
+              ctx.lineWidth = 5;
+              ctx.stroke();
+
+              for (let y = -300; y < 320; y += 40) {
+                const span = 160 * (1 - Math.abs(y) / 420);
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.quadraticCurveTo(span * 0.5, y - 20, span, y - 10);
+                ctx.moveTo(0, y);
+                ctx.quadraticCurveTo(-span * 0.5, y - 20, -span, y - 10);
+                ctx.strokeStyle = type === "healthy" ? "rgba(134, 239, 172, 0.45)" : "rgba(202, 138, 4, 0.45)";
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+              }
+
+              if (type === "spot") {
+                const spots = [
+                  { x: 50, y: -120, r: 35 },
+                  { x: -70, y: -40, r: 45 },
+                  { x: 40, y: 80, r: 30 },
+                  { x: -30, y: 160, r: 25 },
+                  { x: 80, y: -20, r: 22 }
+                ];
+                spots.forEach((sp) => {
+                  ctx.beginPath();
+                  ctx.arc(sp.x, sp.y, sp.r + 14, 0, Math.PI * 2);
+                  ctx.fillStyle = "rgba(234, 179, 8, 0.75)";
+                  ctx.fill();
+
+                  ctx.beginPath();
+                  ctx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+                  ctx.fillStyle = "#451a03";
+                  ctx.fill();
+                  ctx.strokeStyle = "#1c0a00";
+                  ctx.lineWidth = 2;
+                  ctx.stroke();
+
+                  ctx.beginPath();
+                  ctx.arc(sp.x - 2, sp.y - 2, sp.r * 0.45, 0, Math.PI * 2);
+                  ctx.fillStyle = "#180602";
+                  ctx.fill();
+                });
+              }
+              ctx.restore();
+            };
+
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src =
+              type === "healthy"
+                ? "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1280&q=80"
+                : "https://lh3.googleusercontent.com/aida-public/AB6AXuCNNUcthOHLOpYXfvPdyYrfbfLuozJB0hQfvnkWowvAPXWDmULcq3JXOojueiP0dVzog1Ma_GNjhGfP_rO-Lcvc4fL9BCQW_Yvl4L__hNfzeoXeYJZZMdjFIagGi2INT4iFaQ-noSMupzhuThLwMkoIcKYfpwOrWHrDSVa3h9PHZdlROAnW6AEsD_rMNl2fUPM64bOSGDnJJJzBnCFCgpOUWZ_fHBLr-kX3LlWck6cEfYC_TAThQyuO";
+
+            const finishDraw = () => {
+              let exported = false;
+              if (img.complete && img.naturalWidth) {
+                try {
+                  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                  drawTelemetry();
+                  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+                  showPreview(dataUrl);
+                  toast("📸 Crop leaf photo captured! Review or load into diagnostic console");
+                  exported = true;
+                } catch (e) {
+                  // Canvas tainted by CORS, fallback to procedural foliage
+                }
+              }
+              if (!exported) {
+                drawProceduralFoliage();
+                drawTelemetry();
+                const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+                showPreview(dataUrl);
+                toast("📸 Foliar sample captured! Review or load into diagnostic console");
+              }
             };
 
             img.onload = finishDraw;
             img.onerror = finishDraw;
             setTimeout(() => {
               if (!current) finishDraw();
-            }, 300);
+            }, 350);
           },
           fromFile(inp) {
             const f = inp.files && inp.files[0];
@@ -4747,6 +4840,9 @@
                 "% · Brown: " +
                 bp +
                 '%<br/><span style="font-size:12px;color:#414942">Quick on-device colour screening, not a lab diagnosis.</span>';
+            };
+            img.src = current;
+          },
         };
 
         // Dynamic Edge-AI Vision Diagnostic Analysis Engine
@@ -4926,24 +5022,34 @@
 
         // Add "Take Photo" buttons next to existing leaf-photo actions (originals untouched)
         document.querySelectorAll("button").forEach((btn) => {
-          if (/Upload Leaf Photo/.test(btn.textContent)) {
+          if (btn.textContent && /Upload Leaf Photo/.test(btn.textContent)) {
             const nb = document.createElement("button");
             nb.className = btn.className;
             nb.type = "button";
             nb.innerHTML =
               '<span class="material-symbols-outlined text-secondary-fixed">add_a_photo</span><span>Take Photo</span>';
             nb.onclick = () => AVCam.open();
-            btn.insertAdjacentElement("afterend", nb);
+            if (btn.insertAdjacentElement) {
+              btn.insertAdjacentElement("afterend", nb);
+            }
           }
         });
         const cv = document.getElementById("view-cv-check");
         if (cv) {
           const bar = document.createElement("div");
           bar.style.cssText = "display:flex;justify-content:flex-end;margin-bottom:12px";
-          bar.innerHTML =
-            '<button class="avc-btn avc-primary" type="button"><span class="material-symbols-outlined">add_a_photo</span>Capture Leaf with Camera</button>';
-          bar.firstChild.onclick = () => AVCam.open();
-          cv.insertBefore(bar, cv.firstChild);
+          const camBtn = document.createElement("button");
+          camBtn.className = "avc-btn avc-primary";
+          camBtn.type = "button";
+          camBtn.innerHTML =
+            '<span class="material-symbols-outlined">add_a_photo</span>Capture Leaf with Camera';
+          camBtn.onclick = () => AVCam.open();
+          bar.appendChild(camBtn);
+          if (cv.firstChild) {
+            cv.insertBefore(bar, cv.firstChild);
+          } else {
+            cv.appendChild(bar);
+          }
         }
 
         // Live AR mode: overlay the real camera feed on top of the field image (image remains as fallback)
@@ -4951,11 +5057,25 @@
         async function arOn() {
           const bg = document.getElementById("ar-bg-live");
           if (!bg || arStream) return;
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            toast("Camera unavailable in this browser context — showing simulated field view");
+            return;
+          }
           try {
-            arStream = await navigator.mediaDevices.getUserMedia({
-              video: { facingMode: "environment" },
-              audio: false,
-            });
+            let s = null;
+            try {
+              s = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" } },
+                audio: false,
+              });
+            } catch (err1) {
+              s = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false,
+              });
+            }
+            if (!s) return;
+            arStream = s;
             let v = document.getElementById("ar-cam-video");
             if (!v) {
               v = document.createElement("video");
@@ -4963,12 +5083,19 @@
               v.muted = true;
               v.playsInline = true;
               v.autoplay = true;
+              v.style.position = "absolute";
+              v.style.inset = "0";
+              v.style.width = "100%";
+              v.style.height = "100%";
+              v.style.objectFit = "cover";
+              v.style.zIndex = "1";
               bg.appendChild(v);
             }
             v.srcObject = arStream;
-            toast("Live camera passthrough active");
+            v.play().catch(() => {});
+            toast("📸 Live camera passthrough active");
           } catch (e) {
-            toast("Camera unavailable — showing sample field view");
+            toast("Camera access blocked or unavailable — showing sample field view");
           }
         }
         function arOff() {
@@ -5005,6 +5132,7 @@
             window.toggleArMode("live");
           };
           arView.insertBefore(b, arView.firstChild);
+        }
         // ==========================================
         // USER AUTHENTICATION & SESSION MANAGEMENT
         // ==========================================
@@ -5233,7 +5361,8 @@
         // URL Hash Routing Support for #login, #register, etc.
         window.addEventListener("hashchange", function() {
           const hash = window.location.hash.replace("#", "");
-          if (views && views.includes(hash)) {
+          const validViews = (typeof views !== "undefined" ? views : window.views) || [];
+          if (validViews.includes(hash)) {
             window.navigateTo(hash);
           }
         });
@@ -5257,7 +5386,8 @@
           } catch(e) {}
 
           const initialHash = window.location.hash.replace("#", "");
-          if (views && views.includes(initialHash)) {
+          const validViews = (typeof views !== "undefined" ? views : window.views) || [];
+          if (validViews.includes(initialHash)) {
             setTimeout(function() { window.navigateTo(initialHash); }, 150);
           }
         })();
