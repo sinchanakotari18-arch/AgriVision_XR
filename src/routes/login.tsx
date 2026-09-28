@@ -18,7 +18,7 @@ function LoginPage() {
     <iframe
       src="/agrivision.html#login"
       title="AgriVision XR — User Login"
-      allow="camera; fullscreen"
+      allow="camera *; microphone *; fullscreen *"
       className="fixed inset-0 h-full w-full border-0"
     />
   );

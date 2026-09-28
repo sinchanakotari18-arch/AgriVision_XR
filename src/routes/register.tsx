@@ -18,7 +18,7 @@ function RegisterPage() {
     <iframe
       src="/agrivision.html#register"
       title="AgriVision XR — User Registration"
-      allow="camera; fullscreen"
+      allow="camera *; microphone *; fullscreen *"
       className="fixed inset-0 h-full w-full border-0"
     />
   );

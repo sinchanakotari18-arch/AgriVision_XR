@@ -10,16 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AiAssistantRouteImport } from './routes/ai-assistant'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ApiAssessmentsRouteImport } from './routes/api/assessments'
 import { Route as ApiScansRouteImport } from './routes/api/scans'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
+import { Route as ApiAiChatRouteImport } from './routes/api/ai/chat'
 import { Route as ApiDbStatusRouteImport } from './routes/api/db/status'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiAssistantRoute = AiAssistantRouteImport.update({
+  id: '/ai-assistant',
+  path: '/ai-assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -47,6 +54,11 @@ const ApiUsersRoute = ApiUsersRouteImport.update({
   path: '/api/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiChatRoute = ApiAiChatRouteImport.update({
+  id: '/api/ai/chat',
+  path: '/api/ai/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDbStatusRoute = ApiDbStatusRouteImport.update({
   id: '/api/db/status',
   path: '/api/db/status',
@@ -55,69 +67,83 @@ const ApiDbStatusRoute = ApiDbStatusRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-assistant': typeof AiAssistantRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/api/assessments': typeof ApiAssessmentsRoute
   '/api/scans': typeof ApiScansRoute
   '/api/users': typeof ApiUsersRoute
+  '/api/ai/chat': typeof ApiAiChatRoute
   '/api/db/status': typeof ApiDbStatusRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-assistant': typeof AiAssistantRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/api/assessments': typeof ApiAssessmentsRoute
   '/api/scans': typeof ApiScansRoute
   '/api/users': typeof ApiUsersRoute
+  '/api/ai/chat': typeof ApiAiChatRoute
   '/api/db/status': typeof ApiDbStatusRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-assistant': typeof AiAssistantRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/api/assessments': typeof ApiAssessmentsRoute
   '/api/scans': typeof ApiScansRoute
   '/api/users': typeof ApiUsersRoute
+  '/api/ai/chat': typeof ApiAiChatRoute
   '/api/db/status': typeof ApiDbStatusRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai-assistant'
     | '/login'
     | '/register'
     | '/api/assessments'
     | '/api/scans'
     | '/api/users'
+    | '/api/ai/chat'
     | '/api/db/status'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ai-assistant'
     | '/login'
     | '/register'
     | '/api/assessments'
     | '/api/scans'
     | '/api/users'
+    | '/api/ai/chat'
     | '/api/db/status'
   id:
     | '__root__'
     | '/'
+    | '/ai-assistant'
     | '/login'
     | '/register'
     | '/api/assessments'
     | '/api/scans'
     | '/api/users'
+    | '/api/ai/chat'
     | '/api/db/status'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiAssistantRoute: typeof AiAssistantRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   ApiAssessmentsRoute: typeof ApiAssessmentsRoute
   ApiScansRoute: typeof ApiScansRoute
   ApiUsersRoute: typeof ApiUsersRoute
+  ApiAiChatRoute: typeof ApiAiChatRoute
   ApiDbStatusRoute: typeof ApiDbStatusRoute
 }
 
@@ -128,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-assistant': {
+      id: '/ai-assistant'
+      path: '/ai-assistant'
+      fullPath: '/ai-assistant'
+      preLoaderRoute: typeof AiAssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -165,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/chat': {
+      id: '/api/ai/chat'
+      path: '/api/ai/chat'
+      fullPath: '/api/ai/chat'
+      preLoaderRoute: typeof ApiAiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/db/status': {
       id: '/api/db/status'
       path: '/api/db/status'
@@ -177,11 +217,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiAssistantRoute: AiAssistantRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ApiAssessmentsRoute: ApiAssessmentsRoute,
   ApiScansRoute: ApiScansRoute,
   ApiUsersRoute: ApiUsersRoute,
+  ApiAiChatRoute: ApiAiChatRoute,
   ApiDbStatusRoute: ApiDbStatusRoute,
 }
 export const routeTree = rootRouteImport

@@ -26,7 +26,7 @@ function Index() {
     <iframe
       src="/agrivision.html"
       title="AgriVision XR"
-      allow="camera; fullscreen"
+      allow="camera *; microphone *; fullscreen *"
       className="fixed inset-0 h-full w-full border-0"
     />
   );
