@@ -280,6 +280,14 @@
         >
           Central Overview
         </button>
+        <button
+          class="top-nav-link text-on-surface-variant font-label-md py-1 px-2 border-b-2 border-transparent hover:text-primary transition-colors flex items-center gap-1.5"
+          id="nav-mst"
+          onclick="navigateTo('mst')"
+        >
+          <span class="material-symbols-outlined text-sm text-secondary">link</span>
+          <span>MST Blockchain</span>
+        </button>
       </nav>
       <!-- Trailing Actions & User Info -->
       <div class="flex items-center gap-space-sm sm:gap-space-md">
@@ -486,6 +494,17 @@
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
               </span>
+            </button>
+            <button
+              class="side-tab-btn flex items-center justify-between w-full text-left gap-space-sm text-on-surface-variant font-label-md rounded-lg px-space-md py-space-sm hover:bg-surface-container-high transition-colors"
+              id="side-mst"
+              onclick="navigateTo('mst')"
+            >
+              <div class="flex items-center gap-space-sm">
+                <span class="material-symbols-outlined text-body-md text-secondary">link</span>
+                <span>Farm Passport &amp; MST</span>
+              </div>
+              <span id="side-mst-badge" class="text-label-sm font-label-sm bg-primary-container text-tertiary-fixed px-1.5 py-0.5 rounded">MST</span>
             </button>
           </div>
         </div>
@@ -2162,6 +2181,12 @@
                     Save Scan Record
                   </button>
                   <button
+                    class="flex-1 bg-primary-container text-tertiary-fixed py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-primary transition-colors text-center active:scale-95 flex items-center justify-center gap-1"
+                    onclick="mstStartActivity('CROP_ANALYZED')"
+                  >
+                    <span class="material-symbols-outlined text-body-md">link</span>Verify on MST
+                  </button>
+                  <button
                     class="flex-1 bg-surface-container text-primary border border-outline-variant py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-surface-container-high transition-colors text-center active:scale-95"
                     onclick="
                       showToast('Expert review requested. Agronomist assigned within 2 hours.')
@@ -2189,6 +2214,7 @@
                 Farm Action Protocol (Timeline View)
               </h2>
             </div>
+            <div class="flex flex-wrap gap-2">
             <button
               class="bg-primary-container text-white px-space-md py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-primary transition-colors flex items-center gap-1 active:scale-95 shadow-sm"
               onclick="showToast('New custom field task added to backlog')"
@@ -2196,6 +2222,14 @@
               <span class="material-symbols-outlined text-body-md">add_task</span>
               <span>Add Field Task</span>
             </button>
+            <button
+              class="bg-primary-container text-tertiary-fixed px-space-md py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-primary transition-colors flex items-center gap-1 active:scale-95 shadow-sm"
+              onclick="mstStartActivity('FARM_ACTION')"
+            >
+              <span class="material-symbols-outlined text-body-md">link</span>
+              <span>Verify on MST</span>
+            </button>
+            </div>
           </div>
           <!-- Timeline Task Categories -->
           <div class="space-y-space-lg">
@@ -3474,6 +3508,249 @@
           </div>
         </section>
 
+        <!-- ========================================== -->
+        <!-- MST BLOCKCHAIN: Farm Passport, Activity Ledger, Blockchain & Wallet -->
+        <!-- All chain values below are filled by JS from real wallet/RPC responses. -->
+        <!-- ========================================== -->
+        <section class="view-content max-w-7xl mx-auto space-y-space-lg" id="view-mst">
+          <!-- Header -->
+          <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 bg-primary-container text-tertiary-fixed px-2.5 py-1 rounded-full text-label-sm font-label-sm font-bold">
+                  <span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>LIVE MST TESTNET
+                </span>
+                <span class="inline-flex items-center bg-surface-container text-on-surface-variant border border-outline-variant px-2.5 py-1 rounded-full text-label-sm font-label-sm font-mono">Chain ID 91562037</span>
+              </div>
+              <h2 class="text-headline-lg font-headline-lg font-bold text-primary">MST Blockchain: Farm Passport &amp; Activity Ledger</h2>
+              <p class="text-body-md font-body-md text-on-surface-variant max-w-2xl">
+                Every verified farm activity is hashed in your browser and the 32-byte hash is written to the
+                AgriProvenance smart contract on MST Testnet. Farm data itself never goes on-chain.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button id="mst-connect-btn" onclick="mstConnect()" class="bg-primary-container text-white px-space-md py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-primary transition-colors flex items-center gap-1.5 active:scale-95 shadow-sm">
+                <span class="material-symbols-outlined text-body-md text-tertiary-fixed">account_balance_wallet</span>
+                <span id="mst-connect-label">Connect MST Wallet</span>
+              </button>
+              <button id="mst-switch-btn" onclick="mstSwitch()" style="display:none" class="bg-amber-100 text-amber-900 border border-amber-300 px-space-md py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-amber-200 transition-colors flex items-center gap-1.5 active:scale-95">
+                <span class="material-symbols-outlined text-body-md">swap_horiz</span>Switch to MST Testnet
+              </button>
+            </div>
+          </div>
+
+          <!-- Global notice (errors / module not loaded / contract missing) -->
+          <div id="mst-notice" style="display:none" class="p-3 rounded-xl border text-body-sm font-body-sm"></div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md">
+            <!-- MST BLOCKCHAIN VERIFICATION status card -->
+            <div class="lg:col-span-2 bg-primary-container text-white rounded-2xl p-space-md sm:p-space-lg shadow-sm space-y-space-md">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-tertiary-fixed">verified_user</span>
+                  <h3 class="text-headline-sm font-headline-sm font-bold tracking-wide">MST Blockchain Verification</h3>
+                </div>
+                <button onclick="mstRefreshAll(true)" class="text-label-sm font-label-sm text-tertiary-fixed hover:text-white flex items-center gap-1">
+                  <span class="material-symbols-outlined text-body-md">refresh</span>Refresh from chain
+                </button>
+              </div>
+              <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-space-lg gap-y-3 text-body-sm font-body-sm">
+                <div><dt class="text-primary-fixed-dim text-label-sm">Network</dt><dd class="font-bold">MST Testnet</dd></div>
+                <div><dt class="text-primary-fixed-dim text-label-sm">Chain ID</dt><dd class="font-mono font-bold">91562037</dd></div>
+                <div class="sm:col-span-2"><dt class="text-primary-fixed-dim text-label-sm">Wallet</dt><dd id="mst-s-wallet" class="font-mono break-all">Not connected</dd></div>
+                <div><dt class="text-primary-fixed-dim text-label-sm">Connection Status</dt><dd id="mst-s-conn">● Not Connected</dd></div>
+                <div><dt class="text-primary-fixed-dim text-label-sm">RPC / Latest block</dt><dd id="mst-s-rpc">Checking…</dd></div>
+                <div class="sm:col-span-2"><dt class="text-primary-fixed-dim text-label-sm">Contract (AgriProvenance)</dt><dd id="mst-s-contract" class="font-mono break-all">Checking…</dd></div>
+                <div><dt class="text-primary-fixed-dim text-label-sm">Contract Status</dt><dd id="mst-s-cstatus">Checking…</dd></div>
+                <div><dt class="text-primary-fixed-dim text-label-sm">Verification</dt><dd id="mst-s-verif">Not verified yet</dd></div>
+                <div class="sm:col-span-2"><dt class="text-primary-fixed-dim text-label-sm">Latest Transaction</dt><dd id="mst-s-latest" class="font-mono break-all">No transaction yet</dd></div>
+              </dl>
+              <div class="flex flex-wrap gap-2 pt-1">
+                <button onclick="mstScrollTo('mst-recorder')" class="bg-tertiary-fixed text-on-tertiary-fixed px-space-md py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-white transition-colors flex items-center gap-1.5 active:scale-95">
+                  <span class="material-symbols-outlined text-body-md">link</span>VERIFY ON MST
+                </button>
+                <a id="mst-s-explorer" href="https://testnet.mstscan.com" target="_blank" rel="noopener" class="border border-tertiary-fixed-dim text-tertiary-fixed px-space-md py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-white/10 transition-colors flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-body-md">open_in_new</span>Open in MSTScan
+                </a>
+              </div>
+            </div>
+
+            <!-- FARM PASSPORT -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-space-md space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-secondary">badge</span>
+                  <h3 class="text-headline-sm font-headline-sm font-bold text-primary">Farm Passport</h3>
+                </div>
+                <span class="text-label-sm font-label-sm text-on-surface-variant">MST Verification</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-body-sm font-body-sm">
+                <div class="bg-surface-container-low rounded-lg p-2"><div class="text-label-sm text-on-surface-variant">Farm ID</div><div class="font-bold font-mono text-primary">AGRI-001</div></div>
+                <div class="bg-surface-container-low rounded-lg p-2"><div class="text-label-sm text-on-surface-variant">Crop</div><div class="font-bold text-primary">Arecanut</div></div>
+                <div class="bg-surface-container-low rounded-lg p-2"><div class="text-label-sm text-on-surface-variant">AI Confidence</div><div class="font-bold text-primary">92%</div></div>
+                <div class="bg-surface-container-low rounded-lg p-2"><div class="text-label-sm text-on-surface-variant">Crop Health</div><div class="font-bold text-primary">78%</div></div>
+              </div>
+              <p class="text-label-sm text-on-surface-variant">Profile values come from the AgriVision analysis screens (sample farm profile). Only the MST fields below come from the chain.</p>
+              <div class="border-t border-outline-variant pt-3 space-y-2 text-body-sm font-body-sm">
+                <div class="flex items-center justify-between"><span class="text-on-surface-variant">MST Status</span><span id="mst-p-status" class="px-2 py-0.5 rounded-full text-label-sm font-bold bg-surface-container text-on-surface-variant">NOT VERIFIED YET</span></div>
+                <div class="flex items-center justify-between"><span class="text-on-surface-variant">Verified Activities</span><span id="mst-p-count" class="font-bold text-primary">0</span></div>
+                <div><div class="text-on-surface-variant">Latest Transaction</div><div id="mst-p-tx" class="font-mono text-primary break-all">None</div></div>
+                <div><div class="text-on-surface-variant">Contract</div><div id="mst-p-contract" class="font-mono text-primary break-all">Not deployed</div></div>
+                <div class="flex items-center justify-between"><span class="text-on-surface-variant">Network</span><span class="font-bold text-primary">MST Testnet · 91562037</span></div>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-2 pt-1">
+                <button onclick="mstVerifyPrepared()" class="flex-1 bg-secondary text-white py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-secondary/90 transition-colors active:scale-95">VERIFY ON MST</button>
+                <a id="mst-p-link" href="#" onclick="return mstOpenLatest()" class="flex-1 text-center bg-surface-container text-primary border border-outline-variant py-2 rounded-lg text-label-md font-label-md font-bold hover:bg-surface-container-high transition-colors">View Blockchain Record</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECORD & VERIFY -->
+          <div id="mst-recorder" class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-space-md sm:p-space-lg">
+            <div class="flex items-center gap-2 mb-space-md">
+              <span class="material-symbols-outlined text-secondary">fingerprint</span>
+              <h3 class="text-headline-sm font-headline-sm font-bold text-primary">Record a Farm Activity on MST</h3>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-space-lg">
+              <!-- Flow -->
+              <ol id="mst-flow" class="lg:col-span-2 space-y-1.5 text-body-sm font-body-sm"></ol>
+              <!-- Form + result -->
+              <div class="lg:col-span-3 space-y-3">
+                <label class="block">
+                  <span class="text-label-md font-label-md text-on-surface-variant">Activity type</span>
+                  <select id="mst-type" onchange="mstPrepare()" class="mt-1 w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-body-sm text-primary focus:border-secondary focus:ring-1 focus:ring-secondary">
+                    <option value="CROP_ANALYZED">CROP_ANALYZED: latest crop scan result</option>
+                    <option value="AI_RECOMMENDATION">AI_RECOMMENDATION: land suitability pick</option>
+                    <option value="FARM_ACTION">FARM_ACTION: action plan intervention</option>
+                    <option value="TRAINING_COMPLETED">TRAINING_COMPLETED: VR training module</option>
+                    <option value="FARM_CREATED">FARM_CREATED: farm registration</option>
+                    <option value="CREDENTIAL_ISSUED">CREDENTIAL_ISSUED: grower credential</option>
+                  </select>
+                </label>
+                <div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-label-md font-label-md text-on-surface-variant">Activity summary (stays in this browser)</span>
+                    <button onclick="mstPrepare()" class="text-label-sm text-secondary font-bold hover:underline">Re-read from app</button>
+                  </div>
+                  <pre id="mst-payload" class="mt-1 bg-surface-container-low border border-outline-variant rounded-lg p-3 text-[11px] leading-4 font-mono text-primary overflow-x-auto whitespace-pre-wrap break-all"></pre>
+                </div>
+                <div class="bg-surface-container-low border border-outline-variant rounded-lg p-3 space-y-1">
+                  <div class="text-label-md font-label-md text-on-surface-variant">Generated data hash (Keccak-256): the only thing written on-chain</div>
+                  <div id="mst-hash" class="font-mono text-[12px] text-primary break-all">…</div>
+                  <div class="text-label-sm text-on-surface-variant">On-chain key (batchId): <span id="mst-batch" class="font-mono break-all"></span></div>
+                </div>
+                <button id="mst-verify-btn" onclick="mstVerifyPrepared()" class="w-full bg-primary-container text-white py-3 rounded-xl text-body-md font-bold hover:bg-primary transition-colors flex items-center justify-center gap-2 active:scale-[0.99] shadow-sm">
+                  <span class="material-symbols-outlined text-tertiary-fixed">link</span>VERIFY ON MST
+                </button>
+                <div id="mst-tx-panel" style="display:none" class="rounded-xl border p-space-md space-y-2 text-body-sm font-body-sm"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACTIVITY LEDGER -->
+          <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-space-md sm:p-space-lg space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary">receipt_long</span>
+                <h3 class="text-headline-sm font-headline-sm font-bold text-primary">Farm Activity Ledger</h3>
+                <span class="bg-primary-container text-tertiary-fixed text-label-sm font-bold px-2 py-0.5 rounded-full">LIVE MST TESTNET</span>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="mstRecheckAll()" class="bg-surface-container text-primary border border-outline-variant px-3 py-1.5 rounded-lg text-label-md font-label-md font-bold hover:bg-surface-container-high">Re-check all on chain</button>
+                <button onclick="mstVerifyPrepared()" class="bg-secondary text-white px-3 py-1.5 rounded-lg text-label-md font-label-md font-bold hover:bg-secondary/90">VERIFY ON MST</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-body-sm font-body-sm min-w-[980px]">
+                <thead class="text-label-sm text-on-surface-variant border-b border-outline-variant">
+                  <tr><th class="py-2 pr-3">Activity ID</th><th class="pr-3">Type</th><th class="pr-3">Timestamp</th><th class="pr-3">Data Hash</th><th class="pr-3">Wallet</th><th class="pr-3">Transaction Hash</th><th class="pr-3">Block</th><th class="pr-3">MST Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="mst-ledger-body"></tbody>
+              </table>
+            </div>
+            <div id="mst-tamper-out" style="display:none" class="p-3 rounded-lg border text-body-sm font-body-sm"></div>
+
+            <!-- DEMO DATA: never on chain, never shown with a transaction hash -->
+            <details class="mt-2 border border-dashed border-outline rounded-xl p-3">
+              <summary class="cursor-pointer text-label-md font-label-md font-bold text-on-surface-variant flex items-center gap-2">
+                <span class="bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded text-label-sm">DEMO DATA</span>
+                Sample rows showing the ledger format (not blockchain records)
+              </summary>
+              <div class="overflow-x-auto mt-2">
+                <table class="w-full text-left text-body-sm font-body-sm min-w-[720px] text-on-surface-variant">
+                  <thead class="text-label-sm border-b border-outline-variant"><tr><th class="py-2 pr-3">Activity ID</th><th class="pr-3">Type</th><th class="pr-3">Timestamp</th><th class="pr-3">Transaction Hash</th><th>MST Status</th></tr></thead>
+                  <tbody>
+                    <tr class="border-b border-outline-variant/50"><td class="py-2 pr-3 font-mono">DEMO-001</td><td class="pr-3">FARM_CREATED</td><td class="pr-3">Sample</td><td class="pr-3 italic">None (demo, not on chain)</td><td><span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-label-sm font-bold">DEMO DATA</span></td></tr>
+                    <tr class="border-b border-outline-variant/50"><td class="py-2 pr-3 font-mono">DEMO-002</td><td class="pr-3">CROP_ANALYZED</td><td class="pr-3">Sample</td><td class="pr-3 italic">None (demo, not on chain)</td><td><span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-label-sm font-bold">DEMO DATA</span></td></tr>
+                    <tr><td class="py-2 pr-3 font-mono">DEMO-003</td><td class="pr-3">TRAINING_COMPLETED</td><td class="pr-3">Sample</td><td class="pr-3 italic">None (demo, not on chain)</td><td><span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-label-sm font-bold">DEMO DATA</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+
+          <!-- BLOCKCHAIN DETAILS (collapsible) -->
+          <details id="mst-details" class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-space-md">
+            <summary class="cursor-pointer flex items-center gap-2 text-headline-sm font-headline-sm font-bold text-primary">
+              <span class="material-symbols-outlined text-secondary">data_object</span>Blockchain Details
+            </summary>
+            <dl id="mst-details-body" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-body-sm font-body-sm"></dl>
+          </details>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+            <!-- ARCHITECTURE -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-space-md space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary">account_tree</span>
+                <h3 class="text-headline-sm font-headline-sm font-bold text-primary">Where MST sits in AgriVision XR</h3>
+              </div>
+              <div class="flex flex-col items-center gap-1 text-body-sm font-body-sm">
+                <div class="w-full max-w-sm text-center bg-surface-container-low border border-outline-variant rounded-lg py-2">AI Analysis (crop scan, land suitability)</div>
+                <span class="material-symbols-outlined text-outline">south</span>
+                <div class="w-full max-w-sm text-center bg-surface-container-low border border-outline-variant rounded-lg py-2">Agricultural Recommendation</div>
+                <span class="material-symbols-outlined text-outline">south</span>
+                <div class="w-full max-w-sm text-center bg-surface-container-low border border-outline-variant rounded-lg py-2">Farm Activity</div>
+                <span class="material-symbols-outlined text-outline">south</span>
+                <div class="w-full max-w-sm rounded-xl bg-primary-container text-white p-3 space-y-1 ring-2 ring-tertiary-fixed-dim/60">
+                  <div class="text-center text-label-sm font-bold text-tertiary-fixed tracking-wide">MST BLOCKCHAIN — TRUST &amp; VERIFICATION LAYER</div>
+                  <div class="text-center bg-white/10 rounded-md py-1.5">Keccak-256 Data Hash (in browser)</div>
+                  <div class="text-center text-tertiary-fixed-dim">↓</div>
+                  <div class="text-center bg-white/10 rounded-md py-1.5">AgriProvenance Smart Contract · anchor()</div>
+                  <div class="text-center text-tertiary-fixed-dim">↓</div>
+                  <div class="text-center bg-white/10 rounded-md py-1.5">MST Testnet · Chain ID 91562037</div>
+                  <div class="text-center text-tertiary-fixed-dim">↓</div>
+                  <div class="text-center bg-white/10 rounded-md py-1.5">MSTScan Verification · verify()</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BLOCKCHAIN & WALLET SETTINGS -->
+            <div id="mst-settings" class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm p-space-md space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary">settings_ethernet</span>
+                <h3 class="text-headline-sm font-headline-sm font-bold text-primary">Blockchain &amp; Wallet</h3>
+              </div>
+              <dl class="space-y-2 text-body-sm font-body-sm">
+                <div class="flex justify-between gap-2"><dt class="text-on-surface-variant">Blockchain</dt><dd class="font-bold text-primary">MST Blockchain</dd></div>
+                <div class="flex justify-between gap-2"><dt class="text-on-surface-variant">Network</dt><dd class="font-bold text-primary">MST Testnet</dd></div>
+                <div class="flex justify-between gap-2"><dt class="text-on-surface-variant">Chain ID</dt><dd class="font-mono text-primary">91562037</dd></div>
+                <div class="flex justify-between gap-2"><dt class="text-on-surface-variant">RPC</dt><dd class="font-mono text-primary break-all text-right">testnetrpc.mstblockchain.com</dd></div>
+                <div class="flex justify-between gap-2"><dt class="text-on-surface-variant">Network status</dt><dd id="mst-w-net" class="text-primary text-right">Checking…</dd></div>
+                <div class="flex justify-between gap-2"><dt class="text-on-surface-variant">Wallet</dt><dd id="mst-w-wallet" class="font-mono text-primary break-all text-right">Not connected</dd></div>
+                <div class="flex justify-between gap-2"><dt class="text-on-surface-variant">Balance</dt><dd id="mst-w-bal" class="font-mono text-primary text-right">Not connected</dd></div>
+                <div class="flex justify-between gap-2"><dt class="text-on-surface-variant">Contract</dt><dd id="mst-w-contract" class="font-mono text-primary break-all text-right">Not deployed</dd></div>
+                <div class="flex justify-between gap-2"><dt class="text-on-surface-variant">Last verified tx</dt><dd id="mst-w-last" class="font-mono text-primary break-all text-right">None</dd></div>
+              </dl>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="mstConnect()" class="bg-primary-container text-white px-3 py-1.5 rounded-lg text-label-md font-bold hover:bg-primary">Connect MST Wallet</button>
+                <button onclick="mstDisconnect()" class="bg-surface-container text-error border border-outline-variant px-3 py-1.5 rounded-lg text-label-md font-bold hover:bg-error-container">Disconnect Wallet</button>
+                <a href="https://testnet.mstscan.com" target="_blank" rel="noopener" class="bg-surface-container text-primary border border-outline-variant px-3 py-1.5 rounded-lg text-label-md font-bold hover:bg-surface-container-high">MSTScan</a>
+                <a href="https://faucet.mstblockchain.com/" target="_blank" rel="noopener" class="bg-surface-container text-primary border border-outline-variant px-3 py-1.5 rounded-lg text-label-md font-bold hover:bg-surface-container-high">MSTC Faucet</a>
+              </div>
+              <p class="text-label-sm text-on-surface-variant">AgriVision XR never asks for your private key or Secret Recovery Phrase. Every transaction is signed inside MetaMask.</p>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
     <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
@@ -3713,7 +3990,8 @@
           "overview": "Central Overview",
           "login": "User Login",
           "register": "User Registration",
-          "ai-assistant": "AI Agronomist Copilot"
+          "ai-assistant": "AI Agronomist Copilot",
+          "mst": "MST Blockchain"
         };
         return titles[id] || id;
       }
@@ -5391,6 +5669,521 @@
             setTimeout(function() { window.navigateTo(initialHash); }, 150);
           }
         })();
+      })();
+    </script>
+
+    <!-- ========================================== -->
+    <!-- MST BLOCKCHAIN UI CONTROLLER                -->
+    <!-- Chain logic lives in src/lib/mstChain.ts and is exposed by the parent page as window.AgriMst.
+         This script only renders what the wallet / MST RPC actually return. -->
+    <!-- ========================================== -->
+    <script>
+      (function () {
+        const FARM_ID = "AGRI-001";
+        const LS_DISCONNECTED = "agrivision_mst_disconnected";
+        const S = {
+          mst: null,
+          wallet: { hasWallet: false, address: null, chainId: null, onMst: false },
+          network: null,
+          contract: null,
+          balance: null,
+          ledger: [],
+          checks: {}, // txHash -> { state: 'checking'|'done', result }
+          prepared: null,
+          hash: null,
+          flowStep: 0,
+          busy: false,
+          lastVrModule: null,
+          lastAction: null,
+        };
+
+        // Register the view with the existing router.
+        try { if (typeof views !== "undefined" && !views.includes("mst")) views.push("mst"); } catch (e) {}
+
+        // ---------- helpers ----------
+        const $ = (id) => document.getElementById(id);
+        const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        const short = (h, a = 8, b = 6) => (h && h.length > a + b + 2 ? h.slice(0, a) + "…" + h.slice(-b) : h || "");
+        const toast = (m) => { try { showToast(m); } catch (e) {} };
+        const txUrl = (h) => (S.mst ? S.mst.explorerTxUrl(h) : "https://testnet.mstscan.com/tx/" + h);
+        const addrUrl = (a) => (S.mst ? S.mst.explorerAddressUrl(a) : "https://testnet.mstscan.com/address/" + a);
+        const dot = (ok, label) => `<span class="${ok ? "text-secondary-fixed" : "text-error-container"}">●</span> ${esc(label)}`;
+        const isDisconnected = () => localStorage.getItem(LS_DISCONNECTED) === "1";
+
+        function notice(kind, html) {
+          const el = $("mst-notice");
+          if (!el) return;
+          if (!html) { el.style.display = "none"; return; }
+          const cls = {
+            error: "bg-error-container text-on-error-container border-error/40",
+            warn: "bg-amber-50 text-amber-950 border-amber-300",
+            ok: "bg-secondary-container/60 text-on-secondary-container border-secondary/40",
+            info: "bg-surface-container-low text-on-surface border-outline-variant",
+          }[kind];
+          el.className = "p-3 rounded-xl border text-body-sm font-body-sm " + cls;
+          el.innerHTML = html;
+          el.style.display = "block";
+        }
+
+        function errorHtml(err) {
+          const code = err && err.code;
+          const msg = esc((err && err.message) || String(err));
+          const hints = {
+            NO_WALLET: ' <a class="underline font-bold" href="https://metamask.io/download/" target="_blank" rel="noopener">Install MetaMask</a>',
+            WRONG_NETWORK: ' <button class="underline font-bold" onclick="mstSwitch()">Switch to MST Testnet</button>',
+            INSUFFICIENT_FUNDS: ' <a class="underline font-bold" href="https://faucet.mstblockchain.com/" target="_blank" rel="noopener">Open MST faucet</a>',
+            CONTRACT_NOT_CONFIGURED: "<br/>Add <code class=\"font-mono\">VITE_AGRI_MST_ADDRESS=0xYourDeployedAddress</code> to the <code class=\"font-mono\">.env</code> file in the project root and restart <code class=\"font-mono\">npm run dev</code>.",
+            CONTRACT_NOT_DEPLOYED: "<br/>Deploy <code class=\"font-mono\">contracts/AgriProvenance.sol</code> to MST Testnet (Remix + MetaMask), then put the new address in <code class=\"font-mono\">.env</code>.",
+          };
+          return `<strong>${esc(code || "Error")}:</strong> ${msg}${hints[code] || ""}`;
+        }
+
+        // ---------- AgriMst bridge ----------
+        function findMst() {
+          try { if (window.parent && window.parent !== window && window.parent.AgriMst) return window.parent.AgriMst; } catch (e) {}
+          return window.AgriMst || null;
+        }
+        function waitForMst(ms = 12000) {
+          return new Promise((resolve) => {
+            const start = Date.now();
+            (function poll() {
+              const m = findMst();
+              if (m) return resolve(m);
+              if (Date.now() - start > ms) return resolve(null);
+              setTimeout(poll, 200);
+            })();
+          });
+        }
+
+        // ---------- activity capture from the existing AgriVision screens ----------
+        const txt = (id) => { const el = $(id); return el ? String(el.innerText || el.textContent || "").replace(/\s+/g, " ").trim() : null; };
+        function latestConfirmed() {
+          return S.ledger.find((r) => r.status === "CONFIRMED" && r.farmId === FARM_ID) || null;
+        }
+        function buildPayload(type) {
+          const prev = latestConfirmed();
+          const base = { crop: "Arecanut", prevDataHash: prev ? prev.dataHash : "none" };
+          switch (type) {
+            case "CROP_ANALYZED":
+              return { ...base, source: "AgriVision CV crop scan", diagnosis: txt("cv-title") || "No scan yet", status: txt("cv-badge-status") || "n/a", confidence: txt("cv-badge-conf") || "n/a" };
+            case "AI_RECOMMENDATION":
+              return { ...base, source: "Land suitability AI", recommendedCrop: "Arecanut (Mangala)", suitabilityMatch: "92%", intercrop: "Black Pepper (Panniyur-1)" };
+            case "FARM_ACTION":
+              return { ...base, source: "Farm action plan", action: S.lastAction || "Copper Oxychloride Spray (0.25%)", trigger: "CROP_ANALYZED" };
+            case "TRAINING_COMPLETED":
+              return { ...base, source: "AgriVision VR Academy", module: S.lastVrModule || "Precision Crop Health Inspection" };
+            case "FARM_CREATED":
+              return { ...base, source: "Farm registration", areaAcres: 4.5, aiConfidence: "92%", cropHealth: "78%" };
+            case "CREDENTIAL_ISSUED":
+              return { ...base, source: "AgriVision XR", credential: "Verified Arecanut Grower", basis: "Training + MST-verified activities" };
+          }
+          return base;
+        }
+
+        // ---------- flow stepper ----------
+        const FLOW = [
+          "Existing Crop Analysis", "AI Crop / Land Analysis", "Agricultural Recommendation", "Farm Activity",
+          "Generate Data Hash", "VERIFY ON MST", "MetaMask Confirmation", "MST Testnet Transaction",
+          "Verified Farm Record", "Farm Passport", "Activity Ledger",
+        ];
+        function renderFlow() {
+          const el = $("mst-flow");
+          if (!el) return;
+          el.innerHTML = FLOW.map((label, i) => {
+            const done = i < S.flowStep;
+            const active = i === S.flowStep;
+            const chain = i >= 5 && i <= 8;
+            const cls = done
+              ? "bg-secondary-container/60 text-on-secondary-container border-secondary/30"
+              : active
+              ? "bg-primary-container text-white border-primary-container"
+              : "bg-surface-container-low text-on-surface-variant border-outline-variant";
+            return `<li class="flex items-center gap-2 border rounded-lg px-3 py-1.5 ${cls}">
+              <span class="w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[11px] font-bold ${done ? "bg-secondary text-white" : active ? "bg-tertiary-fixed text-on-tertiary-fixed" : "bg-surface-container text-on-surface-variant"}">${done ? "✓" : i + 1}</span>
+              <span class="${chain ? "font-bold" : ""}">${esc(label)}</span>
+              ${chain ? '<span class="ml-auto text-[10px] font-bold opacity-80">MST</span>' : ""}
+            </li>`;
+          }).join("");
+        }
+
+        // ---------- prepare + hash ----------
+        window.mstPrepare = function () {
+          const type = ($("mst-type") && $("mst-type").value) || "CROP_ANALYZED";
+          if (!S.mst) return;
+          S.prepared = S.mst.prepareActivity({ farmId: FARM_ID, activityType: type, payload: buildPayload(type) });
+          S.hash = S.mst.hashActivity(S.prepared);
+          $("mst-payload").textContent = JSON.stringify(
+            { activityId: S.prepared.activityId, activityType: S.prepared.activityType, timestamp: new Date(S.prepared.timestamp).toISOString(), payload: S.hash.canonicalPayload },
+            null, 2);
+          $("mst-hash").textContent = S.hash.dataHash;
+          $("mst-batch").textContent = S.hash.batchId;
+          S.flowStep = 5;
+          renderFlow();
+        };
+
+        // Entry point from other screens (Crop Scanner, Action Plan).
+        window.mstStartActivity = function (type) {
+          navigateTo("mst");
+          const sel = $("mst-type");
+          if (sel) sel.value = type;
+          waitForMst().then((m) => {
+            if (!m) return;
+            S.mst = m;
+            window.mstPrepare();
+            setTimeout(() => window.mstScrollTo("mst-recorder"), 250);
+          });
+        };
+        window.mstScrollTo = function (id) {
+          const el = $(id);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+
+        // ---------- wallet ----------
+        window.mstConnect = async function () {
+          if (!S.mst) { notice("error", "MST module not loaded yet. Open the app from its root URL (/), not /agrivision.html directly."); return; }
+          notice(null);
+          if (!S.mst.hasWallet()) { notice("error", errorHtml({ code: "NO_WALLET", message: "MetaMask is not installed." })); return; }
+          try {
+            localStorage.removeItem(LS_DISCONNECTED);
+            S.wallet = await S.mst.connectWallet();
+            if (!S.wallet.onMst) {
+              notice("warn", `<strong>Please switch to MST Testnet.</strong> Your wallet is on chain ID ${esc(S.wallet.chainId)}. <button class="underline font-bold" onclick="mstSwitch()">Switch to MST Testnet</button>`);
+            } else {
+              notice("ok", "<strong>✓ Connected to MST Testnet</strong>");
+              toast("✓ Connected to MST Testnet");
+            }
+          } catch (e) {
+            notice("error", errorHtml(e));
+          }
+          await refreshWallet();
+        };
+
+        window.mstSwitch = async function () {
+          if (!S.mst) return;
+          try {
+            S.wallet = await S.mst.switchToMst();
+            if (S.wallet.onMst) { notice("ok", "<strong>✓ Connected to MST Testnet</strong>"); toast("✓ Connected to MST Testnet"); }
+          } catch (e) { notice("error", errorHtml(e)); }
+          await refreshWallet();
+          refreshChain();
+        };
+
+        window.mstDisconnect = async function () {
+          if (!S.mst) return;
+          const r = await S.mst.disconnectWallet();
+          localStorage.setItem(LS_DISCONNECTED, "1");
+          S.wallet = { hasWallet: S.mst.hasWallet(), address: null, chainId: null, onMst: false };
+          S.balance = null;
+          notice("info", r.revoked
+            ? "Wallet disconnected. MetaMask permission for this site was revoked."
+            : "Wallet disconnected in AgriVision XR. To fully remove access, open MetaMask → Connected sites and disconnect this site.");
+          renderAll();
+        };
+
+        async function refreshWallet() {
+          if (!S.mst) return;
+          const w = await S.mst.getWalletState();
+          S.wallet = isDisconnected() ? { ...w, address: null } : w;
+          S.balance = null;
+          if (S.wallet.address && S.wallet.onMst) {
+            try { S.balance = await S.mst.getMstcBalance(S.wallet.address); } catch (e) { S.balance = null; }
+          }
+          renderAll();
+        }
+
+        async function refreshChain() {
+          if (!S.mst) return;
+          const [net, con] = await Promise.all([S.mst.getNetworkStatus(), S.mst.getContractStatus()]);
+          S.network = net;
+          S.contract = con;
+          if (con.state === "missing_address") {
+            notice("warn", errorHtml({ code: "CONTRACT_NOT_CONFIGURED", message: "No AgriProvenance contract address is configured." }));
+          } else if (con.state === "not_deployed") {
+            notice("warn", errorHtml({ code: "CONTRACT_NOT_DEPLOYED", message: con.message + " (" + con.address + ")" }));
+          } else if (con.state === "abi_mismatch" || con.state === "invalid_address") {
+            notice("error", errorHtml({ code: "CONTRACT_MISMATCH", message: con.message }));
+          } else if (con.state === "rpc_error" || (!net.ok && net.error)) {
+            notice("error", errorHtml({ code: "RPC_ERROR", message: net.error || con.message }));
+          }
+          renderAll();
+        }
+
+        // ---------- VERIFY ON MST (real transaction) ----------
+        window.mstVerifyPrepared = async function () {
+          if (S.busy) return;
+          if (!S.mst) { notice("error", "MST module not loaded. Open the app from its root URL (/)."); return; }
+          if (!S.prepared) window.mstPrepare();
+          if (!S.wallet.address) { await window.mstConnect(); if (!S.wallet.address) return; }
+          if (!S.wallet.onMst) { notice("warn", errorHtml({ code: "WRONG_NETWORK", message: "Please switch to MST Testnet." })); return; }
+          window.mstScrollTo("mst-recorder");
+          S.busy = true;
+          const btn = $("mst-verify-btn");
+          if (btn) { btn.disabled = true; btn.classList.add("opacity-60"); }
+          txPanel("info", "<strong>Preparing…</strong> checking wallet, network, contract and MSTC balance.");
+          try {
+            const rec = await S.mst.verifyActivityOnMst(S.prepared, (u) => {
+              if (u.phase === "awaiting_signature") {
+                S.flowStep = 6; renderFlow();
+                txPanel("info", "<strong>Waiting for MetaMask…</strong> Review and confirm the transaction in MetaMask. You only pay test MSTC gas.");
+              } else if (u.phase === "submitted") {
+                S.flowStep = 7; renderFlow();
+                txPanel("pending", `<div class="font-bold">Transaction Submitted · pending on MST Testnet…</div>
+                  <div>Transaction Hash: <a class="font-mono underline break-all" href="${esc(u.explorerUrl)}" target="_blank" rel="noopener">${esc(u.txHash)}</a></div>
+                  <div class="text-label-sm">Waiting for the block. Do not close this tab.</div>`);
+                S.ledger = S.mst.loadLedger(); renderLedger();
+              }
+            });
+            S.checks[rec.txHash] = { state: "done", result: { receiptFound: true, receiptStatus: "success", contractVerify: null, fresh: true } };
+            S.flowStep = 11; renderFlow();
+            txPanel("ok", confirmedHtml(rec));
+            toast("✓ Confirmed on MST Testnet");
+            S.ledger = S.mst.loadLedger();
+            // Read the stored hash back from the contract to prove it is really there.
+            recheck(rec);
+            S.prepared = null; // new activity ID next time
+            window.mstPrepare();
+            S.flowStep = 11; renderFlow();
+          } catch (e) {
+            S.flowStep = 5; renderFlow();
+            const pendingNote = e && e.code === "TX_PENDING" ? "<br/>The transaction was sent; use <strong>Re-check</strong> in the Activity Ledger." : "";
+            txPanel(e && e.code === "TX_PENDING" ? "pending" : "error", errorHtml(e) + pendingNote);
+            S.ledger = S.mst.loadLedger();
+          } finally {
+            S.busy = false;
+            if (btn) { btn.disabled = false; btn.classList.remove("opacity-60"); }
+            renderAll();
+          }
+        };
+
+        function confirmedHtml(r) {
+          return `<div class="font-bold">Transaction Submitted</div>
+            <div class="text-headline-sm font-bold text-secondary">✓ Confirmed on MST Testnet</div>
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+              <div class="sm:col-span-2"><dt class="text-label-sm text-on-surface-variant">Transaction Hash</dt><dd class="font-mono break-all">${esc(r.txHash)}</dd></div>
+              <div><dt class="text-label-sm text-on-surface-variant">Block Number</dt><dd class="font-mono">${esc(r.blockNumber)}</dd></div>
+              <div><dt class="text-label-sm text-on-surface-variant">Gas Used</dt><dd class="font-mono">${esc(r.gasUsed)}</dd></div>
+              <div class="sm:col-span-2"><dt class="text-label-sm text-on-surface-variant">Contract Address</dt><dd class="font-mono break-all">${esc(r.contract)}</dd></div>
+              <div><dt class="text-label-sm text-on-surface-variant">Network</dt><dd>MST Testnet</dd></div>
+              <div><dt class="text-label-sm text-on-surface-variant">Chain ID</dt><dd class="font-mono">${esc(r.chainId)}</dd></div>
+              <div class="sm:col-span-2"><dt class="text-label-sm text-on-surface-variant">Data Hash</dt><dd class="font-mono break-all">${esc(r.dataHash)}</dd></div>
+            </dl>
+            <a href="${esc(txUrl(r.txHash))}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 bg-primary-container text-white px-3 py-1.5 rounded-lg text-label-md font-bold hover:bg-primary mt-1"><span class="material-symbols-outlined text-body-md">open_in_new</span>View on MSTScan</a>`;
+        }
+
+        function txPanel(kind, html) {
+          const el = $("mst-tx-panel");
+          if (!el) return;
+          const cls = {
+            info: "bg-surface-container-low border-outline-variant text-on-surface",
+            pending: "bg-amber-50 border-amber-300 text-amber-950",
+            ok: "bg-secondary-container/40 border-secondary/40 text-on-surface",
+            error: "bg-error-container border-error/40 text-on-error-container",
+          }[kind];
+          el.className = "rounded-xl border p-space-md space-y-2 text-body-sm font-body-sm " + cls;
+          el.innerHTML = html;
+          el.style.display = "block";
+        }
+
+        // ---------- on-chain re-check ----------
+        async function recheck(r) {
+          S.checks[r.txHash] = { state: "checking" };
+          renderAll();
+          const res = await S.mst.recheckRecord(r);
+          S.checks[r.txHash] = { state: "done", result: res };
+          S.ledger = S.mst.loadLedger();
+          renderAll();
+          return res;
+        }
+        window.mstRecheck = (txHash) => { const r = S.ledger.find((x) => x.txHash === txHash); if (r) recheck(r); };
+        window.mstRecheckAll = async function () {
+          for (const r of S.ledger) await recheck(r);
+          toast("Ledger re-checked against MST Testnet");
+        };
+        window.mstTamper = async function (txHash) {
+          const r = S.ledger.find((x) => x.txHash === txHash);
+          const out = $("mst-tamper-out");
+          if (!r || !out) return;
+          out.style.display = "block";
+          out.className = "p-3 rounded-lg border text-body-sm font-body-sm bg-surface-container-low border-outline-variant";
+          out.textContent = "Asking the AgriProvenance contract to verify the original and a tampered copy…";
+          try {
+            const t = await S.mst.tamperCheck(r);
+            out.innerHTML = `<div class="font-bold text-primary">Tamper test for ${esc(r.activityId)} (read-only contract call, no gas)</div>
+              <div>Original data hash → contract.verify(): <strong class="${t.original ? "text-secondary" : "text-error"}">${t.original ? "true ✓" : "false"}</strong></div>
+              <div>Tampered copy (one field changed) <span class="font-mono break-all">${esc(short(t.tamperedHash, 12, 8))}</span> → contract.verify(): <strong class="${t.tampered ? "text-error" : "text-secondary"}">${t.tampered ? "true" : "false ✗ (rejected)"}</strong></div>`;
+          } catch (e) {
+            out.innerHTML = errorHtml(e);
+          }
+        };
+        window.mstOpenLatest = function () {
+          const r = S.ledger.find((x) => x.status === "CONFIRMED");
+          if (r) window.open(txUrl(r.txHash), "_blank", "noopener");
+          else toast("No confirmed MST transaction yet. Use VERIFY ON MST first.");
+          return false;
+        };
+
+        // A record counts as VERIFIED only when this session has seen a successful receipt
+        // AND (after re-check) the contract confirms the stored hash.
+        function rowStatus(r) {
+          const c = S.checks[r.txHash];
+          if (!c || c.state === "checking") return { key: "CHECKING", label: "CHECKING…", cls: "bg-surface-container text-on-surface-variant" };
+          const res = c.result || {};
+          if (res.error) return { key: "RPC", label: "RPC ERROR", cls: "bg-error-container text-on-error-container", title: res.error };
+          if (!res.receiptFound) return { key: "PENDING", label: "PENDING", cls: "bg-amber-100 text-amber-900" };
+          if (res.receiptStatus === "failed") return { key: "FAILED", label: "FAILED", cls: "bg-error-container text-on-error-container" };
+          if (res.receiptStatus === "success" && (res.fresh || (res.contractVerify && res.storedRootMatches)))
+            return { key: "VERIFIED", label: "✓ VERIFIED", cls: "bg-secondary text-white" };
+          if (res.receiptStatus === "success") return { key: "MISMATCH", label: "HASH MISMATCH", cls: "bg-error-container text-on-error-container" };
+          return { key: "PENDING", label: "PENDING", cls: "bg-amber-100 text-amber-900" };
+        }
+        const verifiedRecords = () => S.ledger.filter((r) => rowStatus(r).key === "VERIFIED");
+
+        // ---------- rendering ----------
+        function renderLedger() {
+          const body = $("mst-ledger-body");
+          if (!body) return;
+          if (!S.ledger.length) {
+            body.innerHTML = `<tr><td colspan="9" class="py-4 text-on-surface-variant">No blockchain records yet. Press <strong>VERIFY ON MST</strong> to create the first real MST Testnet record.</td></tr>`;
+            return;
+          }
+          body.innerHTML = S.ledger.map((r) => {
+            const st = rowStatus(r);
+            return `<tr class="border-b border-outline-variant/60 align-top">
+              <td class="py-2 pr-3 font-mono text-[11px] break-all max-w-[160px]">${esc(r.activityId)}</td>
+              <td class="pr-3 font-bold text-primary">${esc(r.activityType)}</td>
+              <td class="pr-3 whitespace-nowrap">${esc(new Date(r.timestamp).toLocaleString())}</td>
+              <td class="pr-3 font-mono text-[11px]" title="${esc(r.dataHash)}">${esc(short(r.dataHash))}</td>
+              <td class="pr-3 font-mono text-[11px]"><a class="underline" href="${esc(addrUrl(r.wallet))}" target="_blank" rel="noopener" title="${esc(r.wallet)}">${esc(short(r.wallet, 6, 4))}</a></td>
+              <td class="pr-3 font-mono text-[11px]"><a class="underline text-secondary" href="${esc(txUrl(r.txHash))}" target="_blank" rel="noopener" title="${esc(r.txHash)}">${esc(short(r.txHash))}</a></td>
+              <td class="pr-3 font-mono">${r.blockNumber != null ? `<a class="underline" href="${esc(S.mst ? S.mst.explorerBlockUrl(r.blockNumber) : "#")}" target="_blank" rel="noopener">${esc(r.blockNumber)}</a>` : "—"}</td>
+              <td class="pr-3"><span class="px-2 py-0.5 rounded-full text-label-sm font-bold whitespace-nowrap ${st.cls}" title="${esc(st.title || "")}">${esc(st.label)}</span></td>
+              <td class="whitespace-nowrap space-x-1">
+                <button onclick="mstRecheck('${esc(r.txHash)}')" class="text-label-sm font-bold text-secondary hover:underline">Re-check</button>
+                <button onclick="mstTamper('${esc(r.txHash)}')" class="text-label-sm font-bold text-primary hover:underline">Tamper test</button>
+                <a href="${esc(txUrl(r.txHash))}" target="_blank" rel="noopener" class="text-label-sm font-bold text-primary hover:underline">MSTScan</a>
+              </td></tr>`;
+          }).join("");
+        }
+
+        function renderAll() {
+          const w = S.wallet;
+          const connected = !!w.address;
+          const onMst = connected && w.onMst;
+          const con = S.contract;
+          const contractOk = con && con.state === "deployed";
+          const contractTxt = con ? (con.address ? con.address : "Not deployed") : "Checking…";
+          const verified = verifiedRecords();
+          const latest = S.ledger[0] || null;
+          const latestVerified = verified[0] || null;
+
+          // Status card
+          $("mst-s-wallet").textContent = connected ? w.address : "Not connected";
+          $("mst-s-conn").innerHTML = !w.hasWallet ? dot(false, "MetaMask not installed")
+            : !connected ? dot(false, "Not Connected")
+            : onMst ? dot(true, "Connected to MST Testnet")
+            : dot(false, "Wrong network (chain " + w.chainId + "). Please switch to MST Testnet.");
+          $("mst-s-rpc").innerHTML = !S.network ? "Checking…"
+            : S.network.ok ? dot(true, "Online · block " + S.network.blockNumber)
+            : dot(false, "RPC connection failure");
+          $("mst-s-contract").innerHTML = con && con.address
+            ? `<a class="underline" href="${esc(addrUrl(con.address))}" target="_blank" rel="noopener">${esc(con.address)}</a>`
+            : esc(contractTxt === "Checking…" ? contractTxt : "Not deployed (VITE_AGRI_MST_ADDRESS not set)");
+          $("mst-s-cstatus").innerHTML = !con ? "Checking…" : contractOk ? dot(true, "Deployed") : dot(false, con.state === "rpc_error" ? "Unknown (RPC error)" : "Not Deployed");
+          $("mst-s-verif").innerHTML = latestVerified ? '<span class="text-secondary-fixed font-bold">✓ Verified on MST Testnet</span>' : "Not verified yet";
+          $("mst-s-latest").innerHTML = latest
+            ? `<a class="underline" href="${esc(txUrl(latest.txHash))}" target="_blank" rel="noopener">${esc(latest.txHash)}</a> <span class="text-label-sm">(${esc(rowStatus(latest).label)})</span>`
+            : "No transaction yet";
+          const exp = $("mst-s-explorer");
+          if (exp) exp.href = latest ? txUrl(latest.txHash) : con && con.address ? addrUrl(con.address) : "https://testnet.mstscan.com";
+
+          // Connect button label
+          $("mst-connect-label").textContent = onMst ? "✓ Connected to MST Testnet" : connected ? "Wallet connected (wrong network)" : "Connect MST Wallet";
+          $("mst-switch-btn").style.display = connected && !w.onMst ? "flex" : "none";
+
+          // Passport
+          const pStatus = $("mst-p-status");
+          const anyChecking = S.ledger.some((r) => rowStatus(r).key === "CHECKING");
+          if (verified.length) { pStatus.textContent = "✓ VERIFIED"; pStatus.className = "px-2 py-0.5 rounded-full text-label-sm font-bold bg-secondary text-white"; }
+          else if (anyChecking) { pStatus.textContent = "CHECKING ON-CHAIN…"; pStatus.className = "px-2 py-0.5 rounded-full text-label-sm font-bold bg-surface-container text-on-surface-variant"; }
+          else { pStatus.textContent = "NOT VERIFIED YET"; pStatus.className = "px-2 py-0.5 rounded-full text-label-sm font-bold bg-surface-container text-on-surface-variant"; }
+          $("mst-p-count").textContent = String(verified.filter((r) => r.farmId === FARM_ID).length);
+          $("mst-p-tx").innerHTML = latestVerified ? `<a class="underline" href="${esc(txUrl(latestVerified.txHash))}" target="_blank" rel="noopener">${esc(short(latestVerified.txHash, 12, 10))}</a>` : "None";
+          $("mst-p-contract").textContent = con && con.address ? con.address : "Not deployed";
+
+          // Settings
+          $("mst-w-net").textContent = !S.network ? "Checking…" : S.network.ok ? "Online · block " + S.network.blockNumber + " (" + S.network.via + ")" : "RPC connection failure";
+          $("mst-w-wallet").textContent = connected ? w.address : "Not connected";
+          $("mst-w-bal").textContent = S.balance != null ? S.balance + " MSTC" : connected ? (onMst ? "…" : "Switch to MST Testnet") : "Not connected";
+          $("mst-w-contract").textContent = con && con.address ? con.address + (contractOk ? " (deployed)" : " (" + con.state + ")") : "Not deployed";
+          $("mst-w-last").innerHTML = latestVerified ? `<a class="underline" href="${esc(txUrl(latestVerified.txHash))}" target="_blank" rel="noopener">${esc(short(latestVerified.txHash, 10, 8))}</a>` : "None";
+
+          // Side badge
+          const sb = $("side-mst-badge");
+          if (sb) sb.textContent = verified.length ? "✓ " + verified.length : "MST";
+
+          // Details panel
+          const d = $("mst-details-body");
+          const rec = latestVerified || latest;
+          const row = (k, v, mono = true) => `<div><dt class="text-label-sm text-on-surface-variant">${esc(k)}</dt><dd class="${mono ? "font-mono" : ""} text-primary break-all">${v}</dd></div>`;
+          if (d) d.innerHTML = [
+            row("Network", "MST Testnet", false),
+            row("Chain ID", "91562037"),
+            row("RPC", esc(S.mst ? S.mst.MST_TESTNET.rpcUrls[0] : "https://testnetrpc.mstblockchain.com")),
+            row("Explorer", '<a class="underline" href="https://testnet.mstscan.com" target="_blank" rel="noopener">https://testnet.mstscan.com</a>'),
+            row("Wallet Address", connected ? esc(w.address) : "Not connected"),
+            row("Contract Address", con && con.address ? `<a class="underline" href="${esc(addrUrl(con.address))}" target="_blank" rel="noopener">${esc(con.address)}</a>` : "Not deployed"),
+            row("Transaction Hash", rec ? `<a class="underline" href="${esc(txUrl(rec.txHash))}" target="_blank" rel="noopener">${esc(rec.txHash)}</a>` : "No transaction yet"),
+            row("Block Number", rec && rec.blockNumber != null ? esc(rec.blockNumber) : "—"),
+            row("Data Hash", rec ? esc(rec.dataHash) : S.hash ? esc(S.hash.dataHash) + " (prepared, not yet on-chain)" : "—"),
+            row("On-chain key (batchId)", rec ? esc(rec.batchId) : "—"),
+            row("Stored root = keccak256(dataHash, 0)", rec ? esc(rec.root) : "—"),
+            row("Verification Status", rec ? esc(rowStatus(rec).label) : "Not verified yet", false),
+          ].join("");
+
+          renderLedger();
+        }
+
+        window.mstRefreshAll = async function (showToastMsg) {
+          await refreshWallet();
+          await refreshChain();
+          for (const r of S.ledger) recheck(r);
+          if (showToastMsg) toast("Refreshed from MST Testnet");
+        };
+
+        // ---------- capture context from existing screens (wrappers keep the originals) ----------
+        const origVr = window.launchVrSimulator;
+        if (typeof origVr === "function") window.launchVrSimulator = function (m) { S.lastVrModule = m; return origVr.apply(this, arguments); };
+        const origAdd = window.addToActionPlanFromScan;
+        if (typeof origAdd === "function") window.addToActionPlanFromScan = function () { S.lastAction = "Copper Oxychloride Spray (0.25%)"; return origAdd.apply(this, arguments); };
+
+        // Top-nav highlight + refresh when the MST view opens.
+        const prevNav = window.navigateTo;
+        window.navigateTo = function (id) {
+          prevNav.apply(this, arguments);
+          if (id === "mst") {
+            const t = $("nav-mst");
+            if (t) t.className = "top-nav-link text-secondary border-b-2 border-secondary font-label-md font-bold flex items-center gap-1.5";
+            if (S.mst) { refreshWallet(); refreshChain(); }
+          }
+        };
+
+        // ---------- boot ----------
+        renderFlow();
+        renderAll();
+        waitForMst().then(async (m) => {
+          if (!m) {
+            notice("error", "MST Blockchain module did not load. Open AgriVision XR from its root URL (<code class=\"font-mono\">/</code>) so the ethers.js module in <code class=\"font-mono\">src/lib/mstChain.ts</code> is available.");
+            return;
+          }
+          S.mst = m;
+          S.ledger = m.loadLedger();
+          window.mstPrepare();
+          m.onWalletEvents(() => refreshWallet().then(refreshChain));
+          await refreshWallet();
+          await refreshChain();
+          for (const r of S.ledger) recheck(r);
+        });
+        if (window.location.hash.replace("#", "") === "mst") setTimeout(() => window.navigateTo("mst"), 200);
       })();
     </script>
 

@@ -82,10 +82,10 @@
                                  │
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                  WEB3 BLOCKCHAIN & PROVENANCE LEDGER                    │
-│   • NFT Harvest Passports (Soil Chem Hash + Origin Verification)        │
-│   • Immutable Telemetry Tx Log (CV Scans, Fertigation, AR Waypoints)    │
-│   • Cryptographic Hash Explorer & Zero-Knowledge Verification           │
+│        MST BLOCKCHAIN — TRUST & VERIFICATION LAYER (MST Testnet)        │
+│   • Farm Passport verified by on-chain records (chain ID 91562037)      │
+│   • Activity Ledger: Keccak-256 activity hashes anchored on-chain       │
+│   • AgriProvenance contract verify() + MSTScan links per transaction    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -96,7 +96,7 @@
 - **Framework & Routing**: [React 19](https://react.dev/), [TanStack Start](https://tanstack.com/start), [TanStack Router](https://tanstack.com/router)
 - **State & Data Fetching**: [TanStack Query v5](https://tanstack.com/query)
 - **Styling & UI**: Vanilla CSS + [Tailwind CSS v4](https://tailwindcss.com), [Radix UI](https://www.radix-ui.com/) primitive components, Glassmorphism HUD styling, [Material Symbols Outlined](https://fonts.google.com/icons)
-- **Web3 & Blockchain**: Polygon Mainnet Ledger integration, NFT Passport Minting Engine, Merkle Tree Cryptographic Verifier, ZK-snark privacy specs
+- **Web3 & Blockchain**: MST Blockchain (MST Testnet, chain ID 91562037) via ethers.js v6 + MetaMask, `AgriProvenance` Solidity contract (Merkle Sum Tree roots), MSTScan explorer links. See [MST_BLOCKCHAIN.md](./MST_BLOCKCHAIN.md)
 - **Build Engine & Server**: [Vite 8](https://vitejs.dev/), Nitro Server, TypeScript
 - **Icons & Fonts**: Google Fonts (_Plus Jakarta Sans_, _Inter_)
 
@@ -181,7 +181,7 @@ To showcase the platform in a pitch or hackathon demo:
    - **Vision Diagnostic Telemetry**: YOLO pathogen leaf detection
    - **Spatial AR Field HUD**: Real-time reticle & tree lock (`#A-104`)
    - **VR Training Cockpit**: Drip fertigation & spraying modules
-   - **Web3 Blockchain Ledger**: On-chain batch passport verification & cryptographic proof
+   - **MST Blockchain**: Farm Passport + Activity Ledger with real MST Testnet transactions (see [MST_BLOCKCHAIN.md](./MST_BLOCKCHAIN.md))
 
 ---
 

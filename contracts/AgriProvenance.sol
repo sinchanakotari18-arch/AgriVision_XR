@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 /// Stores one Merkle Sum Tree root per harvest batch and can verify a record against it.
-/// Deploy on Polygon Amoy (testnet) with Remix, then put the address in VITE_AGRI_MST_ADDRESS.
+/// Deploy on MST Testnet (chain ID 91562037) with Remix + MetaMask, then put the address in VITE_AGRI_MST_ADDRESS (.env).
 contract AgriProvenance {
     struct Batch {
         bytes32 root;
@@ -21,7 +21,7 @@ contract AgriProvenance {
         emit BatchAnchored(batchId, root, totalGrams, msg.sender);
     }
 
-    /// Recomputes the root from one leaf plus its sibling path. Matches src/lib/mst.ts exactly.
+    /// Recomputes the root from one leaf plus its sibling path. Matches src/lib/merkleSum.ts exactly.
     function verify(
         bytes32 batchId,
         bytes32 recordDataHash,
