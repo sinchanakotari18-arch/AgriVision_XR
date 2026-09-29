@@ -31,3 +31,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+AgriVision_XR-mst-changed-files/
+agrivision-mst-integration.patch
+.dist/
